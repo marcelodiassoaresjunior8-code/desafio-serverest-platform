@@ -4,7 +4,8 @@ Cypress.Commands.add('validateProductInShoppingList', (product) => {
   cy.url().should('include', '/minhaListaDeProdutos');
   cy.contains('Lista de Compras').should('be.visible');
   cy.contains(product.nome).should('be.visible');
-  cy.contains(product.preco).should('be.visible');
+  
+  cy.contains(new RegExp(product.preco, 'i')).should('be.visible');
 });
 
 Cypress.Commands.add('clearShoppingList', () => {

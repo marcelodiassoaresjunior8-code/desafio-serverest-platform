@@ -1,9 +1,8 @@
 {
   "validProduct": {
-    "nome": "Astrid Hofferson",
+    "nome": "Logitech MX Master 3S - QA",
     "preco": 774,
-    "descricao": "Accusamus corrupti laudantium. Eligendi earum doloremque voluptatum nulla harum quod incidunt. Illum consectetur repudiandae aperiam ad.",
-    "quantidade": 1,
-    "_id": "2DUqzdPaT1SEjqPc"
+    "descricao": "Mouse sem fio de alta precisão para testes automatizados.",
+    "quantidade": 10
   }
 }

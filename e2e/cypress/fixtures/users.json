@@ -1,8 +1,14 @@
 {
-    "validUser": {
-        "nome": "Marcelo Dias",
-        "email": "mdsj1@outlook.com",
-        "password": "32063639",
+    "adminUser": {
+        "nome": "Marcelo Soares Admin",
+        "email": "mdsj1_admin@outlook.com",
+        "password": "password123",
+        "administrador": "true"
+    },
+    "generalUser": {
+        "nome": "Marcelo Soares",
+        "email": "email_teste@outlook.com",
+        "password": "password123",
         "administrador": "false"
     }
 }

@@ -6,9 +6,17 @@ describe('E2E - Shopping List Suite (ServeRest)', () => {
   beforeEach(() => {
     cy.clearLocalStorage();
 
-    const user = users.validUser;
+    const admin = users.adminUser;
+    const user = users.generalUser;
+    const product = products.validProduct;
 
+    cy.setupUsuarioAPI(admin);
     cy.setupUsuarioAPI(user);
+
+    cy.loginAPI(admin.email, admin.password).then((token) => {
+      cy.setupProdutoAPI(product, token);
+    });
+
     cy.visitLoginPage();
     cy.login(user.email, user.password);
     cy.validateSuccessfulLogin();

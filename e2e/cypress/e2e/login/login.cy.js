@@ -3,7 +3,7 @@ import usuarios from '../../fixtures/users.json';
 describe('E2E - Login Suite (ServeRest)', () => {
 
     it('Should successfully log in with valid credentials', () => {
-        const user = usuarios.validUser;
+        const user = usuarios.generalUser;
 
         cy.setupUsuarioAPI(user);
 
