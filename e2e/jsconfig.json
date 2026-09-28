@@ -1,0 +1,11 @@
+{
+  "compilerOptions": {
+    "target": "es6",
+    "moduleResolution": "node10",
+    "types": ["cypress", "node"]
+  },
+  "include": [
+    "cypress/**/*.js",
+    "cypress/support/index.d.ts"
+  ]
+}
