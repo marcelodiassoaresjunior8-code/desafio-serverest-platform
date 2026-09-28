@@ -1,10 +1,22 @@
 declare namespace Cypress {
   interface Chainable {
     /**
-     * Cadastra ou garante a existência do usuário de teste via API
+     * Registers or ensures the existence of the test user via API
      * @example cy.setupUsuarioAPI(user)
      */
-    setupUsuarioAPI(usuario: any): Chainable<void>;
+    setupUsuarioAPI(usuario: any): Chainable<any>;
+
+    /**
+     * Performs login via API and returns the authorization token
+     * @example cy.loginAPI('email@example.com', 'password123').then((token) => { ... })
+     */
+    loginAPI(email: string, password: string): Chainable<string>;
+
+    /**
+     * Registers or updates a product via API using the authorization token
+     * @example cy.setupProdutoAPI(product, token)
+     */
+    setupProdutoAPI(produto: any, token: string): Chainable<any>;
 
     /**
      * Visits the login page

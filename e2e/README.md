@@ -17,24 +17,27 @@ Projeto de automação de testes **End-to-End (E2E)** para a plataforma **ServeR
 
 ## 🏗️ Arquitetura e Padrões de Projeto
 
-O projeto utiliza uma arquitetura modular baseada em **Page Objects desacoplados e Custom Commands**, com foco em **reutilização, manutenibilidade e legibilidade**.
+O projeto utiliza uma arquitetura modular baseada no desacoplamento por responsabilidades (**Page Objects**, **Domain Services** e **Custom Commands**), garantindo **alta reusabilidade, manutenibilidade e separação clara de conceitos (SoC)**.
 
 ### Principais componentes
 
-1. **Desacoplamento de elementos (`elements.js`)**  
-   Centraliza exclusivamente os seletores do DOM, como `data-testid` e seletores CSS.
+1. **Mapeamento de Elementos (`elements.js`)**  
+   Centraliza exclusivamente os seletores do DOM (`data-testid`, seletores CSS e XPath).
 
-2. **Ações reutilizáveis (`actions.js`)**  
-   Encapsula as interações e rotinas executadas nas páginas por meio de `Cypress.Commands`.
+2. **Ações de Interface (`actions.js`)**  
+   Encapsula as interações de UI (preenchimentos, cliques e asserções) por meio de `Cypress.Commands`.
 
-3. **Massa de dados / Fixtures (`cypress/fixtures/`)**  
-   Armazena dados estáticos de teste em formato JSON, como usuários e produtos.
+3. **Serviços de Domínio (`service.js`)**  
+   Centraliza e isola todas as chamadas de API (`cy.request`) divididas por domínio (`login`, `shoppingList`, `users`), abstraindo verbos e endpoints HTTP.
 
 4. **Data Factory / Setup via API (`dataFactory.js`)**  
-   Responsável pela preparação das pré-condições dos testes e pela criação de usuários por meio de requisições HTTP, utilizando comandos como `cy.setupUsuarioAPI`. Essa abordagem reduz a dependência da camada de UI e otimiza o tempo de execução dos testes.
+   Orquestra os serviços de domínio (`service.js`) para preparar e garantir a massa de dados de teste (usuários, autenticação e produtos) via API antes das interações de UI, reduzindo o tempo total de execução.
 
-5. **Autocomplete e tipagem (`index.d.ts` + `jsconfig.json`)**  
-   Define a tipagem dos Custom Commands do Cypress e habilita o autocomplete e o IntelliSense no VS Code.
+5. **Massa de Dados Estática (`cypress/fixtures/`)**  
+   Armazena templates e dados de teste reutilizáveis em formato JSON.
+
+6. **Autocomplete e Tipagem (`index.d.ts` + `jsconfig.json`)**  
+   Define os tipos e documentação JSDoc em inglês para todos os Custom Commands do Cypress.
 
 ---
 
@@ -56,23 +59,27 @@ e2e-test-serverest-platform/
 │   │   ├── products.json
 │   │   └── users.json
 │   └── support/
-│       ├── helpers/                # Data Factory e suporte às requisições de API
+│       ├── helpers/                # Data Factory e orquestração de massa
 │       │   └── dataFactory.js
-│       ├── pages/                  # Elementos e ações organizados por página
+│       ├── pages/                  # Arquitetura modular por domínio (Actions, Elements, Services)
 │       │   ├── home/
 │       │   │   ├── actions.js
 │       │   │   └── elements.js
 │       │   ├── login/
 │       │   │   ├── actions.js
-│       │   │   └── elements.js
-│       │   └── shoppingList/
-│       │       ├── actions.js
-│       │       └── elements.js
-│       ├── commands.js             # Custom Commands do Cypress
-│       ├── e2e.js                  # Ponto de entrada e configuração de suporte
-│       └── index.d.ts              # Definição de tipos dos Custom Commands
-├── cypress.config.js               # Configuração global do Cypress e do Allure
-├── jsconfig.json                   # Configuração do IntelliSense do VS Code
+│       │   │   ├── elements.js
+│       │   │   └── service.js
+│       │   ├── shoppingList/
+│       │   │   ├── actions.js
+│       │   │   ├── elements.js
+│       │   │   └── service.js
+│       │   └── users/
+│       │       └── service.js
+│       ├── commands.js             # Custom Commands gerais
+│       ├── e2e.js                  # Ponto de entrada das configurações de suporte
+│       └── index.d.ts              # Definições de tipo TypeScript para comandos Cypress
+├── cypress.config.js               # Configuração global do Cypress e Allure
+├── jsconfig.json                   # Configuração do IntelliSense no VS Code
 ├── package.json                    # Dependências e scripts do projeto
 └── README.md                       # Documentação do projeto
 ```
@@ -81,7 +88,7 @@ e2e-test-serverest-platform/
 
 ## 💡 Suporte a Autocomplete com `index.d.ts`
 
-Para aumentar a produtividade durante o desenvolvimento e reduzir erros na utilização dos Custom Commands, o arquivo `cypress/support/index.d.ts` estende a interface do Cypress, adicionando tipagem, documentação JSDoc e exemplos de uso.
+Para aumentar a produtividade e evitar erros na utilização dos Custom Commands de UI e API, o arquivo `cypress/support/index.d.ts` estende as interfaces do Cypress com suporte completo ao IntelliSense.
 
 ### Exemplo de definição (`index.d.ts`)
 
@@ -89,21 +96,27 @@ Para aumentar a produtividade durante o desenvolvimento e reduzir erros na utili
 declare namespace Cypress {
   interface Chainable {
     /**
-     * Realiza o login completo, preenchendo e-mail e senha e submetendo o formulário.
-     * @example cy.login('usuario@email.com', 'senha123')
+     * Registers or ensures the existence of the test user via API
+     * @example cy.setupUsuarioAPI(user)
      */
-    login(email: string, password: string): Chainable<void>;
+    setupUsuarioAPI(usuario: any): Chainable<any>;
 
     /**
-     * Remove todos os itens da lista de compras.
-     * @example cy.clearShoppingList()
+     * Performs login via API and returns the authorization token
+     * @example cy.loginAPI('email@example.com', 'password123').then((token) => { ... })
      */
-    clearShoppingList(): Chainable<JQuery<HTMLElement>>;
+    loginAPI(email: string, password: string): Chainable<string>;
+
+    /**
+     * Registers or updates a product via API using the authorization token
+     * @example cy.setupProdutoAPI(product, token)
+     */
+    setupProdutoAPI(produto: any, token: string): Chainable<any>;
   }
 }
 ```
 
-O arquivo **`jsconfig.json`**, localizado na raiz do projeto, configura o suporte ao IntelliSense no editor:
+O arquivo **`jsconfig.json`** garante a resolução desses tipos no VS Code:
 
 ```json
 {
@@ -138,7 +151,7 @@ npm install
 
 ### 2. Executar em modo interativo
 
-Abre o **Cypress Test Runner**, permitindo executar e acompanhar os testes de forma interativa:
+Abre o **Cypress Test Runner**, permitindo executar e acompanhar os testes em tempo real:
 
 ```bash
 npx cypress open
@@ -146,7 +159,7 @@ npx cypress open
 
 ### 3. Executar os testes em modo headless
 
-Executa os testes em modo headless e gera os resultados utilizados pelo Allure:
+Executa os testes no terminal e gera as evidências para o Allure Report:
 
 ```bash
 npm run cy:run
@@ -154,13 +167,13 @@ npm run cy:run
 
 ### 4. Gerar e visualizar o relatório Allure localmente
 
-Gera o relatório estático a partir dos resultados brutos:
+Gera os arquivos do relatório:
 
 ```bash
 npm run allure:generate
 ```
 
-Em seguida, inicia um servidor local para visualizar o relatório interativo:
+Abre o servidor local para navegação interativa no relatório:
 
 ```bash
 npm run allure:open
@@ -170,17 +183,16 @@ npm run allure:open
 
 ## 🔄 Integração Contínua (CI/CD) e Allure Report
 
-A cada `push` ou `pull request` direcionado às branches `main` ou `master`, o workflow do **GitHub Actions** (`.github/workflows/e2e.yml`) é executado automaticamente.
+A cada `push` ou `pull request` direcionado às branches principais, o pipeline no **GitHub Actions** (`.github/workflows/e2e.yml`) é acionado automaticamente.
 
-O pipeline realiza as seguintes etapas:
+O pipeline executa as seguintes etapas:
 
-1. Configura o ambiente com a versão necessária do Node.js.
-2. Instala as dependências do projeto.
-3. Executa a suíte completa de testes Cypress em modo headless.
-4. Coleta os resultados gerados durante a execução.
-5. Gera o relatório Allure.
-6. Publica automaticamente a nova versão do relatório no **GitHub Pages**, utilizando a branch `gh-pages`.
-7. Preserva o histórico das execuções anteriores, permitindo acompanhar a evolução dos resultados dos testes.
+1. Provisionamento do ambiente Node.js.
+2. Instalação das dependências do projeto.
+3. Execução completa dos testes Cypress em modo headless.
+4. Coleta dos artefatos e relatórios de execução.
+5. Geração do Allure Report.
+6. Publicação automática do relatório no **GitHub Pages** (branch `gh-pages`), mantendo o histórico de execuções anteriores.
 
 ---
 

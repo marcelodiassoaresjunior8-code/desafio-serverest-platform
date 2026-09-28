@@ -16,8 +16,10 @@
 // Import commands.js using ES2015 syntax:
 import './commands'
 import './pages/login/actions'
+import './pages/login/service'
 import './pages/home/actions';
 import './pages/shoppingList/actions';
+import './pages/shoppingList/service'
 import './helpers/dataFactory'
 
 import '@mmisty/cypress-allure-adapter/support';
